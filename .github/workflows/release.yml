@@ -1,0 +1,23 @@
+name: Publish Android APK
+on:
+  push:
+    branches: [main]
+    paths: ['downloads/mytempo-1.2.apk', '.github/workflows/release.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify and publish APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha256sum -c downloads/SHA256SUMS.txt
+          if gh release view v1.2.0 >/dev/null 2>&1; then
+            gh release upload v1.2.0 downloads/mytempo-1.2.apk downloads/SHA256SUMS.txt --clobber
+          else
+            gh release create v1.2.0 downloads/mytempo-1.2.apk downloads/SHA256SUMS.txt --target "$GITHUB_SHA" --title "mytempo 1.2 — 광고 없는 메트로놈" --notes-file RELEASE_NOTES.md
+          fi

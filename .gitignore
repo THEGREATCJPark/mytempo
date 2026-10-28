@@ -1,0 +1,8 @@
+build/
+build-*/
+signing/
+*.jks
+*.keystore
+.keystore-password
+local.properties
+.test-deps/
