@@ -1,23 +1,47 @@
-name: Publish Android APK
+name: Build and release
 on:
   push:
-    branches: [main]
-    paths: ['downloads/mytempo-1.2.apk', '.github/workflows/release.yml']
+  pull_request:
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify and publish APK
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK packages
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" >/dev/null'
+      - name: Test
+        run: bash tests/run-audio-tests.sh && bash tests/run-jazz-tests.sh
+      - name: Build test APK
+        run: ANDROID_SDK_ROOT="$ANDROID_HOME" bash build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-build-temporary-signature
+          path: dist/mytempo.apk
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify official APK
+        id: apk
+        run: bash scripts/verify-release.sh
+      - name: Publish a versioned release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.apk.outputs.tag }}
         run: |
-          sha256sum -c downloads/SHA256SUMS.txt
-          if gh release view v1.2.0 >/dev/null 2>&1; then
-            gh release upload v1.2.0 downloads/mytempo-1.2.apk downloads/SHA256SUMS.txt --clobber
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release already exists; keeping its assets unchanged."
           else
-            gh release create v1.2.0 downloads/mytempo-1.2.apk downloads/SHA256SUMS.txt --target "$GITHUB_SHA" --title "mytempo 1.2 — 광고 없는 메트로놈" --notes-file RELEASE_NOTES.md
+            gh release create "$TAG" downloads/mytempo.apk downloads/SHA256SUMS.txt --target "$GITHUB_SHA" --title "mytempo ${TAG#v}" --notes-file RELEASE_NOTES.md --latest
           fi

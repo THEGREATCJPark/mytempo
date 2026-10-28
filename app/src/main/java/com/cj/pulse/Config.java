@@ -8,7 +8,7 @@ public class Config {
     public int[] accents=new int[]{2,1,1,1,1,1,1,1,1,1,1,1,1};
     public int stopMode=0, stopAfter=0, autoMode=0, autoEvery=4, autoStep=5, autoTarget=160;
     public int coachSound=4, coachMute=0, countIn=0;
-    public static final String[] SOUND_NAMES={"디지털", "우드블록", "클라베", "림샷", "카우벨", "하이햇", "스틱", "벨", "저음 클릭", "라이브 클릭", "물방울", "소프트"};
+    public static final String[] SOUND_NAMES={"Digital", "Woodblock", "Clave", "Rimshot", "Cowbell", "Hi-hat", "Stick", "Bell", "Low click", "Live click", "Drop", "Soft"};
     public boolean compound(){return denominator==8;}
     public int beats(){return compound()?numerator/3:numerator;}
     public String meter(){return numerator+"/"+denominator;}

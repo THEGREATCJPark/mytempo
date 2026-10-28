@@ -11,7 +11,7 @@ MAIN_DIR="$PROJECT_DIR/app/src/main"
 BUILD_DIR="$PROJECT_DIR/build"
 OUT_DIR="$PROJECT_DIR/dist"
 SIGN_DIR="$PROJECT_DIR/signing"
-APK_NAME="Pulse-Metronome-1.2.apk"
+APK_NAME="mytempo.apk"
 
 if [[ ! -f "$ANDROID_JAR" || ! -x "$BUILD_TOOLS/aapt2" ]]; then
   echo 'Android SDK missing. Set ANDROID_SDK_ROOT with platforms;android-35 and build-tools;35.0.0 installed.' >&2
@@ -47,7 +47,7 @@ if [[ ! -f "$SIGN_DIR/pulse-release.jks" ]]; then
   keytool -genkeypair -keystore "$SIGN_DIR/pulse-release.jks" \
     -storepass:file "$SIGN_DIR/.keystore-password" -keypass:file "$SIGN_DIR/.keystore-password" \
     -alias pulse -keyalg RSA -keysize 2048 -validity 10000 \
-    -dname 'CN=Pulse Metronome, OU=Personal App, O=CJ, C=KR' \
+    -dname 'CN=mytempo, OU=Personal App, O=CJ, C=KR' \
     -storetype JKS -noprompt
 fi
 "$BUILD_TOOLS/apksigner" sign \
