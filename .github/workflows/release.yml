@@ -1,9 +1,10 @@
-name: Build APK
+name: Build and release
 on:
   push:
+  pull_request:
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,36 +15,33 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Android SDK packages
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" >/dev/null
-      - name: Signing key
-        env:
-          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        run: |
-          # Without these secrets build.sh makes a throwaway key; that APK cannot update an existing install.
-          if [ -n "$KEYSTORE_B64" ]; then
-            mkdir -p signing
-            echo "$KEYSTORE_B64" | base64 -d > signing/pulse-release.jks
-            printf '%s' "$KEYSTORE_PASSWORD" > signing/.keystore-password
-          else
-            echo "::warning::KEYSTORE_B64 not set; signing with a temporary key."
-          fi
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" >/dev/null'
       - name: Test
-        run: bash tests/run-audio-tests.sh
-      - name: Build
+        run: bash tests/run-audio-tests.sh && bash tests/run-jazz-tests.sh
+      - name: Build test APK
         run: ANDROID_SDK_ROOT="$ANDROID_HOME" bash build.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: mytempo
-          path: dist/mytempo.apk*
-      - name: Release
-        if: github.ref == 'refs/heads/main'
+          name: test-build-temporary-signature
+          path: dist/mytempo.apk
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify official APK
+        id: apk
+        run: bash scripts/verify-release.sh
+      - name: Publish a versioned release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.apk.outputs.tag }}
         run: |
-          (cd dist && sha256sum mytempo.apk > SHA256SUMS.txt)
-          if gh release view v2.0.0 >/dev/null 2>&1; then
-            gh release upload v2.0.0 dist/mytempo.apk dist/SHA256SUMS.txt --clobber
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release already exists; keeping its assets unchanged."
           else
-            gh release create v2.0.0 dist/mytempo.apk dist/SHA256SUMS.txt --target "$GITHUB_SHA" --title "mytempo 2.0" --notes-file RELEASE_NOTES.md --latest
+            gh release create "$TAG" downloads/mytempo.apk downloads/SHA256SUMS.txt --target "$GITHUB_SHA" --title "mytempo ${TAG#v}" --notes-file RELEASE_NOTES.md --latest
           fi

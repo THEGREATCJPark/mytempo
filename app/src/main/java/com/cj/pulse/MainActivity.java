@@ -17,7 +17,9 @@ public class MainActivity extends Activity {
     private Config cfg;
     private final Handler handler=new Handler(Looper.getMainLooper());
     private LinearLayout root;
-    private TextView tempo,meterButton,patternButton,play;
+    private TextView tempo,meterButton,patternButton,play,scaleLine;
+    private int scaleIndex=7;
+    private boolean showScale=false;
     private BeatView beats;
     private static final int BG=Color.BLACK, TEXT=Color.WHITE, MUTED=Color.rgb(120,120,120), LINE=Color.rgb(48,48,48), DIM=Color.rgb(34,34,34);
     private final String[] simple={"Quarter","Eighths","Triplets","Sixteenths","Dotted","Swing"};
@@ -35,7 +37,7 @@ public class MainActivity extends Activity {
         super.onCreate(b);
         SharedPreferences p=getSharedPreferences("pulse",0);
         try{cfg=Config.fromJson(new JSONObject(p.getString("config","{}")));}catch(Exception e){cfg=new Config();}
-        keepScreen=p.getBoolean("screen",true);
+        keepScreen=p.getBoolean("screen",true);scaleIndex=Config.clamp(p.getInt("scaleIndex",7),0,JazzReference.NAMES.length-1);showScale=p.getBoolean("showScale",false);
         for(int i=0;i<keys.length;i++)keys[i]=p.getInt("key"+i,keys[i]);
         disableAutomation();
         build();
@@ -65,6 +67,7 @@ public class MainActivity extends Activity {
         TextView plus=button("+",()->changeTempo(1));plus.setTextSize(26);plus.setContentDescription("Faster");repeat(plus,1);addWeighted(adjust,plus);body.addView(adjust);gap(body,36);
         lastBeat=-2;beats=new BeatView();body.addView(beats,new LinearLayout.LayoutParams(-1,dp(cfg.beats()>7?96:52)));gap(body,12);
         LinearLayout timing=row();meterButton=quiet("",()->chooseMeter());patternButton=quiet("",()->choosePattern());addWeighted(timing,meterButton);addWeighted(timing,patternButton);body.addView(timing);
+        scaleLine=text("",14,MUTED);scaleLine.setPadding(0,dp(12),0,0);scaleLine.setLineSpacing(dp(5),1);scaleLine.setOnClickListener(v->chooseScale());body.addView(scaleLine);updateScale();
         Space bottom=new Space(this);body.addView(bottom,new LinearLayout.LayoutParams(1,0,1));gap(body,24);
         play=text("",17,BG);play.setLetterSpacing(.12f);play.setMinHeight(dp(64));play.setClickable(true);play.setFocusable(true);play.setOnClickListener(v->toggle());body.addView(play,new LinearLayout.LayoutParams(-1,-2));
         lastPlaying=!MetroService.state.playing;refresh();
@@ -98,9 +101,12 @@ public class MainActivity extends Activity {
     private void chooseMeter(){ArrayList<String> names=new ArrayList<>();for(int d:new int[]{4,2})for(int n=1;n<=13;n++)names.add(n+"/"+d);for(int n:new int[]{3,6,9,12})names.add(n+"/8");new AlertDialog.Builder(this).setTitle("Time signature").setSingleChoiceItems(names.toArray(new String[0]),names.indexOf(cfg.meter()),(d,w)->{String[] a=names.get(w).split("/");cfg.numerator=Integer.parseInt(a[0]);cfg.denominator=Integer.parseInt(a[1]);cfg.pattern=0;Arrays.fill(cfg.accents,1);cfg.accents[0]=2;apply(false);d.dismiss();build();}).show();}
     private void choosePattern(){new AlertDialog.Builder(this).setTitle("Subdivision").setSingleChoiceItems(cfg.compound()?compound:simple,cfg.pattern,(d,w)->{cfg.pattern=w;apply(false);d.dismiss();}).show();}
     private void settings(){
-        String[] items={"Sound  ·  "+Config.SOUND_NAMES[cfg.sound],"Volume  ·  "+cfg.volume+"%","Keep screen on  ·  "+(keepScreen?"On":"Off"),"Pedal / keyboard"};
-        new AlertDialog.Builder(this).setTitle("Settings").setItems(items,(d,w)->{switch(w){case 0:chooseSound();break;case 1:chooseVolume();break;case 2:keepScreen=!keepScreen;persist();build();settings();break;default:keySettings();}}).setNegativeButton("Close",null).show();
+        String[] items={"Sound  ·  "+Config.SOUND_NAMES[cfg.sound],"Volume  ·  "+cfg.volume+"%","Keep screen on  ·  "+(keepScreen?"On":"Off"),"Pedal / keyboard","Scales","Available tensions"};
+        new AlertDialog.Builder(this).setTitle("Settings").setItems(items,(d,w)->{switch(w){case 0:chooseSound();break;case 1:chooseVolume();break;case 2:keepScreen=!keepScreen;persist();build();settings();break;case 3:keySettings();break;case 4:chooseScale();break;default:showTensions();}}).setNegativeButton("Close",null).show();
     }
+    private void updateScale(){scaleLine.setText(JazzReference.NAMES[scaleIndex]+"\n"+JazzReference.FORMULAS[scaleIndex]);scaleLine.setVisibility(showScale?View.VISIBLE:View.GONE);}
+    private void chooseScale(){String[] labels=new String[JazzReference.ORDER.length+1];labels[0]="Hide scale";int selected=0;for(int i=0;i<JazzReference.ORDER.length;i++){int id=JazzReference.ORDER[i];labels[i+1]=(i+1)+". "+JazzReference.NAMES[id];if(showScale&&id==scaleIndex)selected=i+1;}new AlertDialog.Builder(this).setTitle("Scales · suggested study order").setSingleChoiceItems(labels,selected,(d,w)->{showScale=w>0;if(showScale)scaleIndex=JazzReference.ORDER[w-1];getSharedPreferences("pulse",0).edit().putInt("scaleIndex",scaleIndex).putBoolean("showScale",showScale).apply();updateScale();d.dismiss();}).setNegativeButton("Close",null).show();}
+    private void showTensions(){new AlertDialog.Builder(this).setTitle("Available tensions").setItems(JazzReference.CHORDS,(d,w)->new AlertDialog.Builder(this).setTitle(JazzReference.CHORDS[w]).setMessage(JazzReference.TENSIONS[w]+"\n\nMajor-key functions or the named chord scale. Choose for the melody and voicing; these are not instructions to play every tension together. Alterations are relative to the chord root.").setPositiveButton("Close",null).show()).setNegativeButton("Close",null).show();}
     private void chooseSound(){new AlertDialog.Builder(this).setTitle("Sound").setSingleChoiceItems(Config.SOUND_NAMES,cfg.sound,(d,w)->{cfg.sound=w;apply(false);}).setPositiveButton("Done",(d,w)->settings()).show();}
     private void chooseVolume(){
         LinearLayout panel=new LinearLayout(this);panel.setOrientation(1);panel.setPadding(dp(20),dp(16),dp(20),dp(8));
@@ -139,3 +145,4 @@ public class MainActivity extends Activity {
         @Override public boolean performClick(){super.performClick();return true;}
     }
 }
+
