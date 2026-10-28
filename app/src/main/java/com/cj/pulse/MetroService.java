@@ -68,8 +68,8 @@ public final class MetroService extends Service {
         super.onCreate();
         instance = this;
         notifications = getSystemService(NotificationManager.class);
-        NotificationChannel channel = new NotificationChannel(CHANNEL, "메트로놈 재생", NotificationManager.IMPORTANCE_LOW);
-        channel.setDescription("화면을 꺼도 계속 재생하고 알림에서 정지합니다.");
+        NotificationChannel channel = new NotificationChannel(CHANNEL, "Playback", NotificationManager.IMPORTANCE_LOW);
+        channel.setDescription("Keeps the click running with the screen off.");
         channel.setSound(null, null);
         channel.enableVibration(false);
         notifications.createNotificationChannel(channel);
@@ -175,7 +175,7 @@ public final class MetroService extends Service {
             else startForeground(NOTIFICATION_ID, notification());
             foreground = true;
             if (audioManager.requestAudioFocus(focusRequest) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                finishPlayback("오디오를 사용할 수 없습니다. 다른 앱 재생을 멈춘 뒤 다시 시도하세요.");
+                finishPlayback("Audio is busy. Stop other playback and try again.");
                 return;
             }
             wakeLock.acquire();
@@ -210,7 +210,7 @@ public final class MetroService extends Service {
             });
             engine.start();
         } catch (RuntimeException error) {
-            finishPlayback("재생을 시작할 수 없습니다: " + error.getClass().getSimpleName());
+            finishPlayback("Cannot start: " + error.getClass().getSimpleName());
         }
     }
 
@@ -259,8 +259,8 @@ public final class MetroService extends Service {
                         current.elapsedMs, playing ? 1f : 0f).build());
         metadataBpm = current.bpm;
         session.setMetadata(new MediaMetadata.Builder().putString(MediaMetadata.METADATA_KEY_TITLE,
-                "Pulse · " + current.bpm + " BPM")
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, config.meter() + " 메트로놈").build());
+                current.bpm + " BPM")
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, config.meter() + " · mytempo").build());
     }
 
     private PendingIntent openAppIntent() {
@@ -275,14 +275,13 @@ public final class MetroService extends Service {
 
     private Notification notification() {
         State current = state;
-        String status = current.countingIn ? "카운트인" : current.muted ? "무음 훈련" : "재생 중";
-        Notification.Builder builder = new Notification.Builder(this, CHANNEL)
-                .setSmallIcon(R.drawable.ic_notification).setContentTitle("Pulse Metronome")
-                .setContentText(current.bpm + " BPM · " + config.meter() + " · " + status)
+                Notification.Builder builder = new Notification.Builder(this, CHANNEL)
+                .setSmallIcon(R.drawable.ic_notification).setContentTitle(current.bpm + " BPM")
+                .setContentText(config.meter())
                 .setContentIntent(openAppIntent()).setOngoing(true).setOnlyAlertOnce(true)
                 .setShowWhen(false).setCategory(Notification.CATEGORY_TRANSPORT)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .addAction(new Notification.Action.Builder(android.R.drawable.ic_media_pause, "정지",
+                .addAction(new Notification.Action.Builder(android.R.drawable.ic_media_pause, "Stop",
                         actionIntent(ACTION_STOP, 31)).build());
         if (session != null) builder.setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()).setShowActionsInCompactView(0));
         return builder.build();

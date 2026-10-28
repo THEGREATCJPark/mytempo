@@ -1,12 +1,9 @@
-# mytempo 1.2
+mytempo 2.0
 
-무료·광고 없는 오프라인 Android 메트로놈입니다. Android 8.0 이상에서 사용할 수 있습니다.
+A metronome without ads.
 
-아래 Assets의 **mytempo-1.2.apk**를 내려받아 열고 설치하세요. 앱 표시 이름은 Pulse Metronome입니다.
+- New minimal, monochrome interface
+- New icon
+- English only
 
-- BPM 10–400, 짧게 ±1 / 길게 ±5, 탭 템포
-- 박자·강세·무음 및 백그라운드 재생
-- 숫자 재즈 스케일 23종, 코드별 Available Tension
-- 광고·계정·인터넷 권한 없음
-
-빌드·서명·오디오 엔진 자동 검증을 통과했습니다. 실제 휴대폰의 음향 지연 및 블루투스 페달 호환은 별도 확인이 필요합니다.
+Android 8.0+. Download `mytempo.apk` below.

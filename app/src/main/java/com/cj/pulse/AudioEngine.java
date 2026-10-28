@@ -36,7 +36,7 @@ public final class AudioEngine {
     public synchronized void start() {
         if(running)return;
         running=true;
-        worker=new Thread(this::render,"Pulse PCM clock");worker.start();
+        worker=new Thread(this::render,"mytempo PCM clock");worker.start();
     }
     public void update(Config config) { update(config,true); }
     public synchronized void update(Config config, boolean explicitTempo) {
@@ -62,13 +62,13 @@ public final class AudioEngine {
         try {
             Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
             int min=AudioTrack.getMinBufferSize(RATE,AudioFormat.CHANNEL_OUT_MONO,AudioFormat.ENCODING_PCM_16BIT);
-            if(min<0)throw new IllegalStateException("오디오 형식을 열 수 없습니다");
+            if(min<0)throw new IllegalStateException("Audio format unavailable");
             output=new AudioTrack.Builder()
                 .setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
                 .setAudioFormat(new AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_16BIT).setSampleRate(RATE).setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build())
                 .setTransferMode(AudioTrack.MODE_STREAM).setBufferSizeInBytes(Math.max(min,1920*2))
                 .setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY).build();
-            if(output.getState()!=AudioTrack.STATE_INITIALIZED)throw new IllegalStateException("오디오 출력을 초기화할 수 없습니다");
+            if(output.getState()!=AudioTrack.STATE_INITIALIZED)throw new IllegalStateException("Audio output unavailable");
             track=output;
             if(!running)return;
             output.play();
@@ -164,7 +164,7 @@ public final class AudioEngine {
                 int wrote=0;
                 while(running&&wrote<produced) {
                     int n=output.write(pcm,wrote,produced-wrote,AudioTrack.WRITE_BLOCKING);
-                    if(n<0)throw new IllegalStateException("오디오 출력 오류 ("+n+")");
+                    if(n<0)throw new IllegalStateException("Audio output error ("+n+")");
                     if(n==0)break;wrote+=n;
                 }
                 long head=output.getPlaybackHeadPosition()&0xffffffffL;
