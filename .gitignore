@@ -6,3 +6,7 @@ signing/
 .keystore-password
 local.properties
 .test-deps/
+
+
+dist/
+ui-artifacts/

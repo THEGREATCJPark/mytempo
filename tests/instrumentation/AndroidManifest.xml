@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.cj.pulse.tests">
+ <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+ <application android:label="mytempo UI tests" />
+ <instrumentation android:name="com.cj.pulse.WindowSmokeTest" android:targetPackage="com.cj.pulse" android:label="Window and PiP smoke test" />
+</manifest>

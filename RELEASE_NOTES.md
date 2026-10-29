@@ -1,10 +1,12 @@
-mytempo 2.0.1
+mytempo 2.1.0
 
-Minimal monochrome interface and new icon, with jazz tools retained.
+Tablet, Samsung pop-up and picture-in-picture support.
 
-- Settings → Scales: 23 numeric scale formulas in suggested study order; optionally display the selected formula on the main screen.
-- Settings → Available tensions: chord-by-chord reference.
-- Keeps ±1 tap / ±5 hold BPM controls and background playback.
-- Same signing certificate as 1.2, so existing installs can update.
+- Adaptive portrait / landscape layout, sized for Galaxy Tab S6 Lite and other tablets.
+- Compact controls and pinned Start/Stop in small windows.
+- PiP BPM and beat display with −5, Start/Stop and +5 system actions.
+- Optional Auto PiP while playing; off by default.
+- Numeric jazz scales and available tensions retained in Settings.
+- Same signing certificate as 1.2 and 2.0.1.
 
-Android 8.0+. Download `mytempo.apk` below.
+Android 8.0+. Emulator checks do not replace testing on the actual tablet or One UI version.

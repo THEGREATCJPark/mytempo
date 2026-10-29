@@ -43,3 +43,14 @@ bash tests/run-audio-tests.sh
 ## Releases
 
 The CI test-build artifact uses a temporary certificate. Official releases use the stable 1.2 signing certificate, verified before publication. The signed APK and checksum in `downloads/` are the release package. Maintainers build with the private original key, update that package and bump the manifest version together. Existing releases are never overwritten.
+
+## Tablets, Samsung pop-up view and PiP
+
+The layout adapts to the current window, including Galaxy Tab S6 Lite (1200 × 2000 display), landscape, split screen and Samsung pop-up view. The Start/Stop button stays outside the scrolling controls, and beat dots wrap in narrow windows. The same layout supports other tablet sizes.
+
+- Samsung pop-up view: use Recents → app icon → Open in pop-up view. All normal controls remain available.
+- Android PiP: tap **PiP** beside Settings. The mini window shows BPM and beat position; tap it to reveal the system's **−5 / Start–Stop / +5** actions. Expand the window for full controls.
+- Settings → **Auto PiP while playing** optionally enters PiP on Home. It is off by default and does not interrupt split screen.
+- PiP availability and placement depend on the Android version, One UI version and the app's picture-in-picture permission.
+
+CI exercises portrait, landscape, a 240 × 320 dp compact window, larger text and actual PiP actions on Android 11 and Android 14 emulators. This is not a physical Galaxy Tab S6 Lite or One UI certification.
