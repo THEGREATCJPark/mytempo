@@ -100,16 +100,17 @@ public class MainActivity extends Activity {
         LinearLayout contents=new LinearLayout(this);contents.setOrientation(layout.twoColumns?LinearLayout.HORIZONTAL:LinearLayout.VERTICAL);contents.setGravity(Gravity.CENTER);scroll.addView(contents,new ScrollView.LayoutParams(-1,-1));
         LinearLayout number=new LinearLayout(this);number.setOrientation(LinearLayout.VERTICAL);number.setGravity(Gravity.CENTER);
         tempo=tempoView(layout.tempoSp);tempo.setOnClickListener(v->editTempo());number.addView(tempo,new LinearLayout.LayoutParams(-1,dp(layout.tempoHeight)));
-        TextView unit=text("BPM",12,MUTED);unit.setLetterSpacing(.3f);number.addView(unit);
+        TextView unit=text("BPM",12,MUTED);unit.setLetterSpacing(.3f);if(!layout.compact)number.addView(unit);
         if(layout.twoColumns)contents.addView(number,new LinearLayout.LayoutParams(0,-2,1));else contents.addView(number,new LinearLayout.LayoutParams(-1,-2));
         LinearLayout controls=new LinearLayout(this);controls.setOrientation(LinearLayout.VERTICAL);controls.setGravity(Gravity.CENTER);
         if(layout.twoColumns){controls.setPadding(dp(20),0,0,0);contents.addView(controls,new LinearLayout.LayoutParams(0,-2,1));}else{gap(contents,layout.spacing);contents.addView(controls,new LinearLayout.LayoutParams(-1,-2));}
         LinearLayout adjust=row();TextView minus=button("−",()->changeTempo(-1));minus.setTextSize(26);minus.setContentDescription("Slower");repeat(minus,-1);addWeighted(adjust,minus);
         TextView tap=button("Tap",()->tap());tap.setContentDescription("Tap tempo");addWeighted(adjust,tap);
-        TextView plus=button("+",()->changeTempo(1));plus.setTextSize(26);plus.setContentDescription("Faster");repeat(plus,1);addWeighted(adjust,plus);controls.addView(adjust);gap(controls,layout.spacing);
+        TextView plus=button("+",()->changeTempo(1));plus.setTextSize(26);plus.setContentDescription("Faster");repeat(plus,1);addWeighted(adjust,plus);if(!layout.compact){controls.addView(adjust);gap(controls,layout.spacing);}
         lastBeat=-2;beats=new BeatView();controls.addView(beats,new LinearLayout.LayoutParams(-1,dp(WindowLayout.beatRows(cfg.beats(),Math.round((layout.twoColumns?w/2f:w)/getResources().getDisplayMetrics().density)-layout.padding*2)*48+4)));
         LinearLayout timing=row();meterButton=quiet("",()->chooseMeter());patternButton=quiet("",()->choosePattern());meterButton.setContentDescription("Time signature");patternButton.setContentDescription("Subdivision");addWeighted(timing,meterButton);addWeighted(timing,patternButton);controls.addView(timing);
         scaleLine=text("",layout.tablet?18:14,MUTED);scaleLine.setPadding(0,dp(8),0,dp(8));scaleLine.setLineSpacing(dp(5),1);scaleLine.setOnClickListener(v->chooseScale());controls.addView(scaleLine);updateScale();
+        if(layout.compact){gap(body,4);body.addView(adjust);}
         gap(body,layout.compact?4:16);
         play=text("",17,BG);play.setLetterSpacing(.12f);play.setMinHeight(dp(layout.compact?48:64));play.setClickable(true);play.setFocusable(true);play.setOnClickListener(v->toggle());play.setContentDescription("Start or stop");body.addView(play,new LinearLayout.LayoutParams(-1,-2));
         lastPlaying=!MetroService.state.playing;refresh();
